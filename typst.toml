@@ -1,0 +1,23 @@
+[package]
+name = "premetadated"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Baptiste Auguie"]
+license = "MPL-2.0"
+description = "Vintage scientific illustration with elliptical-nib strokes and hidden-line 3D rendering"
+repository = "https://github.com/baptiste/premetadated"
+compiler = "0.13.0"
+keywords = ["illustration", "geometry", "engraving", "vintage", "cetz"]
+categories = ["visualization"]
+exclude = [
+	"target",
+	"src",
+	"tests",
+	"Cargo.toml",
+	"Cargo.lock",
+	"*.pdf",
+	"examples/rendered",
+	"assets/previews",
+	"elliptical-pen-envelope-spec.md",
+	"docs/architecture.md",
+]

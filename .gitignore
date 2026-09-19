@@ -1,0 +1,11 @@
+/target/
+.DS_Store
+/examples/rendered/
+
+# Internal implementation notes and design discussions.
+/elliptical-pen-envelope-spec.md
+/docs/architecture.md
+/docs/internal/
+*-design.md
+*-plan.md
+*-spec.md

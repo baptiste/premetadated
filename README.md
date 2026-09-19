@@ -1,0 +1,117 @@
+# Premetadated
+
+Vintage scientific illustration for Typst, with elliptical-pen strokes,
+hidden-line 3D rendering, lighting-aware hatching, stippling, optics, and
+mechanical drawing helpers.
+
+[![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](LICENSE)
+[![Typst](https://img.shields.io/badge/Typst-0.13%2B-239dad.svg)](https://typst.app)
+
+Premetadated combines a Typst/Cetz interface with a bundled Rust/WASM geometry
+engine. It is intended for diagrams that should remain crisp, searchable, and
+slightly older than their metadata suggests.
+
+## Gallery
+
+<table>
+<tr>
+<td width="33%"><img src="assets/previews/solids.png" alt="Ellipsoids and rounded polyhedra"></td>
+<td width="33%"><img src="assets/previews/shading-atlas.png" alt="Lighting-aware hatching and stippling"></td>
+<td width="33%"><img src="assets/previews/optics-plate.png" alt="Vintage compound microscope plate"></td>
+</tr>
+<tr>
+<td align="center">Rounded solids</td>
+<td align="center">Shading atlas</td>
+<td align="center">Optics plate</td>
+</tr>
+</table>
+
+More complete plates are in [`examples/`](examples/). The package reference and
+worked examples are in [`manual.typ`](manual.typ); a compiled copy is available
+as [`manual.pdf`](manual.pdf).
+
+## Quick start
+
+From a repository checkout:
+
+```typ
+#import "lib.typ" as premetadated
+
+#let geo = premetadated.geometry
+#let draw = premetadated.illustration
+
+#show: premetadated.style.plate.with(
+  number: [Plate I],
+  title: [Elementary Solids],
+  subtitle: [surface lines governed by illumination],
+)
+
+#align(center, draw.canvas({
+  geo.render(
+    geo.sphere(
+      (0.0, 0.0, 0.0),
+      1.0,
+      pattern: (geo.texture.lit-hatch)(
+        light: (1.0, -0.35, 1.0),
+        count: 620,
+        crosshatch: 0.76,
+      ),
+    ),
+    eye: (4.2, 5.2, 3.0),
+    width: 5.0,
+    height: 5.0,
+    pen: (0.022, 0.006, 24deg),
+  )
+}))
+```
+
+Once released through Typst Universe, the equivalent package import will be:
+
+```typ
+#import "@preview/premetadated:0.1.0"
+```
+
+## Namespaces
+
+| Namespace | Purpose |
+| --- | --- |
+| `stroke` | Cubic paths, elliptical nib envelopes, dashes, and pressure breakup |
+| `geometry` | 3D primitives, textures, projection, and hidden-line rendering |
+| `illustration` | Canvas, palette, engraved rules, labels, SVG gestures, and captions |
+| `optics` | Lens construction and piecewise ray paths |
+| `mechanics` | Rod, collar, joint, and lit-joint constructors |
+| `style` | Example, engraved plate, and patent-sheet templates |
+
+Available 3D primitives include spheres, ellipsoids, cubes, cylinders, cones,
+tori, generic swept tubes, rounded boxes, and rounded convex polyhedra. Surface
+styles include outlines, stripes, latitude/longitude grids, random circles,
+lighting-aware hatching, and stippling.
+
+## Build and verify
+
+The checked-in `elliptical_pen_envelope.wasm` is ready for Typst. Rebuild it
+after changing Rust geometry or the binary protocol:
+
+```sh
+cargo test --all-features
+cargo build --release --target wasm32-unknown-unknown --features typst-plugin
+cp target/wasm32-unknown-unknown/release/elliptical_pen_envelope.wasm .
+typst compile --root . manual.typ manual.pdf
+```
+
+Compile an individual plate with the repository as the project root:
+
+```sh
+typst compile --root . examples/solids.typ examples/rendered/solids.pdf
+```
+
+## Credits and license
+
+Premetadated directly builds on Cetz and Larnt, with Larnt continuing the lineage
+of Michael Fogleman's `ln`. Its visual and procedural vocabulary owes a great
+deal to MetaPost, Fiziko, and vintage-latex. See
+[`ACKNOWLEDGMENTS.md`](ACKNOWLEDGMENTS.md) for precise dependency, adaptation,
+and asset credits, including the temporary Twemoji placeholders.
+
+Premetadated is licensed under the [Mozilla Public License 2.0](LICENSE).
+Third-party components and assets remain under their respective licenses.
