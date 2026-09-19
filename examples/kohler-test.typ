@@ -5,7 +5,7 @@
 #let optics-illustration = premetadated.optics-illustration
 
 #let diagram = optics-illustration.import-scene(
-  json("../assets/rayscenes/kohler.json"),
+  json("../assets/rayscenes/test.json"),
   beam-rays: 11,
   angle-rays: 3,
   scale: 70,
@@ -40,7 +40,7 @@
 
 #premetadated.style.notes(
   premetadated.style.note([Construction.], [
-    The scene is read directly from `assets/rayscenes/kohler.json`. Pixel
+    The scene is read directly from `assets/rayscenes/test.json`. Pixel
     coordinates are retained for the optical calculation and transformed only
     when the finished traces are engraved on the plate.
   ]),

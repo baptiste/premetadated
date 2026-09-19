@@ -4,6 +4,7 @@
 #let geometry = premetadated.geometry
 #let drawing = premetadated.illustration
 #let optics = premetadated.optics
+#let optics-illustration = premetadated.optics-illustration
 
 #let lens-trace = optics.trace-ray(
   optics.ray((-2.0, 1.0), (1.0, 0.0)),
@@ -41,7 +42,7 @@
 )
 #assert.eq(split-traces.len(), 2)
 
-#let imported-kohler = optics.import-ray-optics(json("../kohler.json"), beam-rays: 3, angle-rays: 2)
+#let imported-kohler = optics.import-ray-optics(json("../assets/rayscenes/kohler.json"), beam-rays: 3, angle-rays: 2)
 #assert.eq(imported-kohler.rays.len(), 6)
 #assert.eq(imported-kohler.elements.len(), 4)
 #assert(imported-kohler.bounds != none)
@@ -51,6 +52,18 @@
 ), beam-rays: 3, angle-rays: 2)
 #assert.eq(imported-point.rays.len(), 6)
 #assert.eq(imported-point.rays.first().origin, (3.0, 4.0))
+
+#let imported-diagram = optics-illustration.import-scene((
+  objs: (
+    (type: "Beam", p1: (x: -3.0, y: -0.4), p2: (x: -3.0, y: 0.4)),
+    (type: "IdealLens", p1: (x: -1.0, y: -1.0), p2: (x: -1.0, y: 1.0), focalLength: 2.0),
+    (type: "Mirror", p1: (x: 1.0, y: -0.7), p2: (x: 1.0, y: 0.7)),
+    (type: "Blocker", p1: (x: 2.0, y: -0.7), p2: (x: 2.0, y: 0.7)),
+    (type: "CropBox", p1: (x: -4.0, y: -2.0), p4: (x: 4.0, y: 2.0)),
+  ),
+), beam-rays: 2, angle-rays: 1, scale: 1.2, max-distance: 8)
+#assert.eq(imported-diagram.traces.len(), 2)
+#assert.eq(optics-illustration.project(imported-diagram, imported-diagram.center), (0.0, 0.0))
 
 #let line = (
   ((0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (3.0, 0.0)),
@@ -97,4 +110,5 @@
 #show: premetadated.style.example.with(width: 8cm, height: 4cm, margin: 5mm)
 #drawing.canvas({
   stroke.nib-stroke(line, pen: (0.4, 0.15, 25deg), fill: rgb("d1495b"))
+  optics-illustration.draw(imported-diagram)
 })

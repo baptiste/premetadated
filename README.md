@@ -79,6 +79,7 @@ Once released through Typst Universe, the equivalent package import will be:
 | `geometry` | 3D primitives, textures, projection, and hidden-line rendering |
 | `illustration` | Canvas, palette, engraved rules, labels, SVG gestures, and captions |
 | `optics` | Standalone 2D ray tracing, optical elements, scene import, and paths |
+| `optics-illustration` | Projection and engraved rendering of imported optics scenes |
 | `mechanics` | Rod, collar, joint, and lit-joint constructors |
 | `style` | Example, engraved plate, and patent-sheet templates |
 
@@ -111,6 +112,24 @@ subset of [Ray Optics Simulation](https://github.com/ricktu288/ray-optics)
 scenes: `Beam`, `SingleRay`, `PointSource`, `IdealLens`, `Mirror`,
 `BeamSplitter`, `Blocker`, `Aperture`, and `CropBox`. See
 [`examples/kohler.typ`](examples/kohler.typ) for a complete computed plate.
+
+Use `optics-illustration` when the imported scene should be traced, projected,
+and engraved with the package's standard optical vocabulary:
+
+```typ
+#let draw = premetadated.illustration
+#let optical-drawing = premetadated.optics-illustration
+#let diagram = optical-drawing.import-scene(
+  json("scene.json"),
+  scale: 70,
+  max-distance: 1200,
+)
+
+#draw.canvas({
+  optical-drawing.draw(diagram)
+  optical-drawing.label(diagram, (100, 200), [source])
+})
+```
 
 ## Build and verify
 

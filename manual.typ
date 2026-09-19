@@ -59,9 +59,9 @@ elliptical-pen envelopes, 3D projection, hidden-line removal, and robust solid
 geometry. Output remains vector-based: labels are Typst text and marks are Cetz
 paths rather than raster effects.
 
-The package entrypoint exports six namespaces: `stroke`, `geometry`,
-`illustration`, `optics`, `mechanics`, and `style`. Most documents need only the
-geometry and illustration namespaces.
+The package entrypoint exports seven namespaces: `stroke`, `geometry`,
+`illustration`, `optics`, `optics-illustration`, `mechanics`, and `style`. Most
+documents need only the geometry and illustration namespaces.
 
 == Importing
 
@@ -499,9 +499,16 @@ of an aperture terminate the ray.
 `Beam`, `SingleRay`, `PointSource`, `IdealLens`, `Mirror`, `BeamSplitter`,
 `Blocker`, `Aperture`, and `CropBox` objects exported by Ray Optics Simulation.
 Unsupported curved and refractive-volume objects are ignored. The complete
-`examples/kohler.typ` plate reads `kohler.json`, computes every ray, and only
-then converts traces with `ray-path` for engraving. `lens-path` remains a visual
-outline helper and does not participate in the calculation.
+`examples/kohler.typ` plate reads `assets/rayscenes/kohler.json`, computes every
+ray, and only then converts traces with `ray-path` for engraving. `lens-path`
+remains a visual outline helper and does not participate in the calculation.
+
+`optics-illustration.import-scene` combines that import with crop-box boundaries,
+tracing, and a centered drawing projection. Pass the result to
+`optics-illustration.draw` inside an `illustration.canvas`; use
+`optics-illustration.project` or `optics-illustration.label` for annotations in
+the source scene's coordinate system. The renderer includes beams, lenses,
+mirrors, beam splitters, blockers, apertures, rays, and the optical axis.
 
 The mechanics namespace provides `rod`, `collar`, `joint`, and `lit-joint`
 constructors. These return geometry primitives suitable for the same scene and
