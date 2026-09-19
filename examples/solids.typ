@@ -117,6 +117,6 @@
   ]),
   premetadated.style.note([Rounded solids.], [
     The rounded polyhedron is the convex hull of spherical support samples around
-    the supplied vertices, approximating the Premetadated sum $"conv"(V) + B_r$.
+    the supplied vertices, approximating the Minkowski sum $"conv"(V) + B_r$.
   ]),
 )
