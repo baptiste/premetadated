@@ -43,6 +43,7 @@
   subtitle: [rays computed from a Ray Optics Simulation scene],
   margin: (top: 22mm, bottom: 22mm, left: 20mm, right: 20mm),
 )
+#show math.equation: set text(font: ("Old Standard", "New Computer Modern Math"))
 
 #let kohler-figure = drawing.canvas(length: 1.18cm, {
   import cetz.draw: line, content
@@ -168,4 +169,45 @@
     second lens redirects the admitted pencil after the stop; blocked rays end at
     the opaque leaves rather than passing through them.
   ]),
+)
+
+#v(5mm)
+#line(length: 100%, stroke: (paint: pale-ink, thickness: 0.35pt))
+#v(3mm)
+#align(center, text(size: 9pt, tracking: 1.1pt, smallcaps[Principal Relations]))
+#v(3mm)
+
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  gutter: 10mm,
+  align: top,
+  [
+    #text(size: 8pt, smallcaps[Conjugate planes])
+    #v(2mm)
+    $ 1/f = 1/s + 1/s' $
+    #v(1mm)
+    $ m = h'/h = -s'/s $
+    #v(1mm)
+    $ u_"out" = u_"in" - h/f $
+    #v(2mm)
+    #text(size: 8pt)[The second relation is the local paraxial update used by the tracer.]
+  ],
+  [
+    #text(size: 8pt, smallcaps[Reflection])
+    #v(2mm)
+    $ bold(r) = bold(d) - 2 (bold(d) dot bold(n)) bold(n) $
+    #v(1mm)
+    $ norm(bold(r)) = 1 $
+    #v(2mm)
+    #text(size: 8pt)[The unit normal is taken from the finite mirror segment at incidence.]
+  ],
+  [
+    #text(size: 8pt, smallcaps[Stops and source])
+    #v(2mm)
+    $ chi_"pass"(h) = cases(1 & abs(h) <= a, 0 & abs(h) > a) $
+    #v(1mm)
+    $ theta_j = -alpha/2 + j alpha/(N_theta - 1) $
+    #v(2mm)
+    #text(size: 8pt)[Opaque leaves reject rays outside the clear half-aperture $a$.]
+  ],
 )
