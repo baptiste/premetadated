@@ -39,6 +39,12 @@ ideas and visual examples were reimplemented independently for Typst and the
 Rust/WASM plugin; the links above are provided both as credit and as excellent
 references for the broader design tradition.
 
+The standalone ray tracer and JSON interchange in `optics.typ` were informed by
+[Ray Optics Simulation](https://github.com/ricktu288/ray-optics), licensed under
+Apache-2.0. Premetadated does not vendor its implementation; it independently
+implements the thin-lens, reflection, stopping, and branching equations while
+accepting a documented subset of its exported scene object schema.
+
 ## Bundled graphics
 
 The temporary eye and hand SVG placeholders are unmodified

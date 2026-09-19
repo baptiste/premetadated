@@ -3,6 +3,54 @@
 #let stroke = premetadated.stroke
 #let geometry = premetadated.geometry
 #let drawing = premetadated.illustration
+#let optics = premetadated.optics
+
+#let lens-trace = optics.trace-ray(
+  optics.ray((-2.0, 1.0), (1.0, 0.0)),
+  (optics.ideal-lens((0.0, -2.0), (0.0, 2.0), 2.0),),
+  max-distance: 4.0,
+).first()
+#assert.eq(lens-trace.points.len(), 3)
+#let lens-hit = lens-trace.points.at(1)
+#let lens-end = lens-trace.points.at(2)
+#let focal-y = lens-hit.at(1) + (2.0 - lens-hit.at(0)) * (lens-end.at(1) - lens-hit.at(1)) / (lens-end.at(0) - lens-hit.at(0))
+#assert(calc.abs(focal-y) < 1e-5)
+
+#let mirror-trace = optics.trace-ray(
+  optics.ray((-1.0, 0.0), (1.0, 0.0)),
+  (optics.mirror((0.0, -1.0), (0.0, 1.0)),),
+  max-distance: 2.0,
+).first()
+#assert(mirror-trace.points.last().at(0) < 0)
+
+#let blocker-trace = optics.trace-ray(
+  optics.ray((-1.0, 0.0), (1.0, 0.0)),
+  (optics.blocker((0.0, -1.0), (0.0, 1.0)),),
+).first()
+#assert.eq(blocker-trace.terminated-by, "blocker")
+#assert.eq(blocker-trace.points.len(), 2)
+
+#let stop = optics.aperture((0.0, -2.0), (0.0, 2.0), (0.0, -0.5), (0.0, 0.5))
+#assert.eq(optics.trace-ray(optics.ray((-1.0, 0.0), (1.0, 0.0)), (stop,), max-distance: 2.0).first().terminated-by, "distance")
+#assert.eq(optics.trace-ray(optics.ray((-1.0, 1.0), (1.0, 0.0)), (stop,)).first().terminated-by, "aperture")
+
+#let split-traces = optics.trace-ray(
+  optics.ray((-1.0, 0.0), (1.0, 0.0)),
+  (optics.beam-splitter((0.0, -1.0), (0.0, 1.0)),),
+  max-distance: 2.0,
+)
+#assert.eq(split-traces.len(), 2)
+
+#let imported-kohler = optics.import-ray-optics(json("../kohler.json"), beam-rays: 3, angle-rays: 2)
+#assert.eq(imported-kohler.rays.len(), 6)
+#assert.eq(imported-kohler.elements.len(), 4)
+#assert(imported-kohler.bounds != none)
+
+#let imported-point = optics.import-ray-optics((
+  objs: ((type: "PointSource", x: 3.0, y: 4.0, brightness: 0.6),),
+), beam-rays: 3, angle-rays: 2)
+#assert.eq(imported-point.rays.len(), 6)
+#assert.eq(imported-point.rays.first().origin, (3.0, 4.0))
 
 #let line = (
   ((0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (3.0, 0.0)),

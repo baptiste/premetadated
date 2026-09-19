@@ -78,7 +78,7 @@ Once released through Typst Universe, the equivalent package import will be:
 | `stroke` | Cubic paths, elliptical nib envelopes, dashes, and pressure breakup |
 | `geometry` | 3D primitives, textures, projection, and hidden-line rendering |
 | `illustration` | Canvas, palette, engraved rules, labels, SVG gestures, and captions |
-| `optics` | Lens construction and piecewise ray paths |
+| `optics` | Standalone 2D ray tracing, optical elements, scene import, and paths |
 | `mechanics` | Rod, collar, joint, and lit-joint constructors |
 | `style` | Example, engraved plate, and patent-sheet templates |
 
@@ -86,6 +86,31 @@ Available 3D primitives include spheres, ellipsoids, cubes, cylinders, cones,
 tori, generic swept tubes, rounded boxes, and rounded convex polyhedra. Surface
 styles include outlines, stripes, latitude/longitude grids, random circles,
 lighting-aware hatching, and stippling.
+
+## Ray optics
+
+The dependency-free `optics` module traces finite beams and point sources through
+ideal thin lenses, line mirrors, blockers, apertures, and beam splitters. It
+returns point arrays rather than drawing directly, so it can later be extracted
+from Premetadated or rendered with another backend.
+
+```typ
+#let optics = premetadated.optics
+#let scene = (
+  rays: optics.beam-source((-4, -1), (-4, 1), count: 9),
+  elements: (
+    optics.ideal-lens((-1, -2), (-1, 2), 2.5),
+    optics.aperture((1, -2), (1, 2), (1, -0.6), (1, 0.6)),
+  ),
+)
+#let traces = optics.trace-scene(scene, max-distance: 6)
+```
+
+`optics.import-ray-optics(json("scene.json"))` imports the supported linear
+subset of [Ray Optics Simulation](https://github.com/ricktu288/ray-optics)
+scenes: `Beam`, `SingleRay`, `PointSource`, `IdealLens`, `Mirror`,
+`BeamSplitter`, `Blocker`, `Aperture`, and `CropBox`. See
+[`examples/kohler.typ`](examples/kohler.typ) for a complete computed plate.
 
 ## Build and verify
 

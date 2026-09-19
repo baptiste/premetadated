@@ -461,29 +461,47 @@ attachment coordinates for vector annotations.
 
 = Optics and mechanics
 
-`optics.lens-path` returns the two-dimensional outline of a symmetric lens.
-`optics.ray-path` constructs piecewise cubic rays through supplied points. These
-helpers return ordinary paths, so they compose with `illustration.engraved` or
-`stroke.nib-stroke`.
+The standalone `optics` module has no drawing dependency. Sources are created
+with `ray`, `point-source`, or `beam-source`; elements with `ideal-lens`,
+`mirror`, `blocker`, `aperture`, or `beam-splitter`. `trace-ray` and
+`trace-scene` return point arrays and preserve brightness and wavelength
+metadata. Splitters create independent transmitted and reflected branches.
+
+At a lens the local paraxial slope follows $u' = u - h/f$. Mirrors use
+$bold(r) = bold(d) - 2 (bold(d) dot bold(n)) bold(n)$. The tracer always selects
+the nearest finite-segment intersection, while blockers and the opaque leaves
+of an aperture terminate the ray.
 
 #align(center)[
   #draw.canvas(length: 0.68cm, {
     let left-lens = optics.lens-path(-1.5, 1.05, 0.28)
     let right-lens = optics.lens-path(1.35, 0.86, 0.22)
+    let scene = (
+      rays: optics.beam-source((-4, -0.65), (-4, 0.65), count: 7, spread: 5deg, angle-count: 2),
+      elements: (
+        optics.ideal-lens((-1.5, -1.05), (-1.5, 1.05), 2.4),
+        optics.ideal-lens((1.35, -0.86), (1.35, 0.86), 1.8),
+      ),
+    )
+    let traces = optics.trace-scene(scene, max-distance: 3.0)
     stroke.nib-stroke(left-lens, closed: true, pen: (0.020, 0.006, 20deg), fill: draw.palette.ink)
     stroke.nib-stroke(right-lens, closed: true, pen: (0.020, 0.006, 20deg), fill: draw.palette.ink)
-    for ray in (
-      ((-4, 0.70), (-1.5, 0.36), (1.35, -0.32), (4, -0.70)),
-      ((-4, 0.20), (-1.5, 0.10), (1.35, -0.09), (4, -0.20)),
-      ((-4, -0.48), (-1.5, -0.24), (1.35, 0.22), (4, 0.48)),
-    ) {
-      draw.engraved(optics.ray-path(ray), width: 0.009, angle: 12deg)
+    for trace in traces {
+      draw.engraved(optics.ray-path(trace.points), width: 0.0065, angle: 12deg, ink: draw.palette.pale-ink)
     }
     draw.label((-1.5, 1.35), [$L_1$])
     draw.label((1.35, 1.12), [$L_2$])
   })
-  #draw.figure-caption([Two lens paths and three piecewise ray paths.])
+  #draw.figure-caption([A finite beam traced through two ideal thin lenses.])
 ]
+
+`import-ray-optics(json-data, beam-rays:, angle-rays:)` accepts the linear
+`Beam`, `SingleRay`, `PointSource`, `IdealLens`, `Mirror`, `BeamSplitter`,
+`Blocker`, `Aperture`, and `CropBox` objects exported by Ray Optics Simulation.
+Unsupported curved and refractive-volume objects are ignored. The complete
+`examples/kohler.typ` plate reads `kohler.json`, computes every ray, and only
+then converts traces with `ray-path` for engraving. `lens-path` remains a visual
+outline helper and does not participate in the calculation.
 
 The mechanics namespace provides `rod`, `collar`, `joint`, and `lit-joint`
 constructors. These return geometry primitives suitable for the same scene and
