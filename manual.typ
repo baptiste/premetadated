@@ -295,8 +295,8 @@ The camera parameters are `eye`, `center`, `up`, `width`, `height`, `fovy`,
 - `cylinder(radius, start, end)` and `cone(radius, base, apex)`
 - `torus(center, major-radius, minor-radius)`
 - `rounded-polyhedron(vertices, radius:, detail:)`
-- `tube(points, radius:, sides:, closed:)`
-- `tube-curve(function, start:, end:, samples:, radius:, sides:, closed:)`
+- `tube(points, radius:, sides:, closed:, cap:)`
+- `tube-curve(function, start:, end:, samples:, radius:, sides:, closed:, cap:)`
 
 Rounded polyhedra approximate the convex Minkowski sum of their input vertices
 with a sphere. Their original convex-hull edges receive dedicated transition
@@ -374,6 +374,61 @@ bands so rounding remains legible without exposing triangulation diagonals.
   })
   #draw.figure-caption([A closed trefoil tube with hidden crossings removed.])
 ]
+
+For `tube`, `radius` may be one number or an array with one positive value per
+centerline point. For `tube-curve`, it may additionally be a function evaluated
+at the same parameter values as the sampled curve. Radius values are linearly
+interpolated between samples, including across the seam of a closed tube.
+
+Open tubes accept `cap: "flat"`, `"round"`, or `"none"`. The default remains
+`"flat"` for compatibility. A round cap extends the swept mesh by one endpoint
+radius and closes it with an integrated hemisphere oriented along the endpoint
+tangent. The cap option has no effect on a closed tube.
+
+```typ
+#let swelling(t) = 0.12 + 0.3 * calc.sin(calc.pi * t)
+#geo.tube-curve(
+  t => (3 * t, 0.25 * calc.sin(2 * calc.pi * t), 0),
+  radius: swelling,
+  samples: 64,
+  sides: 16,
+  cap: "round",
+)
+
+#geo.tube(
+  ((0, 0, 0), (1, 0, 0.2), (2, 0, 0)),
+  radius: (0.12, 0.4, 0.18),
+  cap: "round",
+)
+```
+
+#let manual-swelling(t) = 0.12 + 0.3 * calc.sin(calc.pi * t)
+#let manual-variable-tube = geo.tube-curve(
+  t => (3 * (t - 0.5), 0.25 * calc.sin(2 * calc.pi * t), 0.35 * calc.sin(calc.pi * t)),
+  radius: manual-swelling,
+  samples: 64,
+  sides: 16,
+  cap: "round",
+  pattern: (geo.texture.striped)(28),
+)
+
+#align(center)[
+  #draw.canvas(length: 0.72cm, {
+    geo.render(
+      manual-variable-tube,
+      eye: (4.8, 7.2, 3.8),
+      center: (0, 0, 0.1),
+      width: 4.8,
+      height: 2.8,
+      fovy: 34,
+      step: 0.014,
+      pen: (0.020, 0.0055, 24deg),
+    )
+  })
+  #draw.figure-caption([A sampled radius profile with hemispherical caps.])
+]
+
+See `examples/variable-tubes.typ` for lit and striped specimens.
 
 = Surface styles and light
 
@@ -454,10 +509,13 @@ helpers are:
   #draw.figure-caption([Engraved rule, label, eye, pointing hand, and mirrored raised hand.])
 ]
 
-The `eye` and `hand` helpers currently place vendored Twemoji SVG placeholders.
-They support origin, direction, and size; hands additionally support `pose` and
-`handedness`. `hand-anchors` returns approximate wrist, palm, finger, and thumb
-attachment coordinates for vector annotations.
+The `eye` helper draws an asymmetric Cetz eye with filled iris and pupil plus
+elliptical-nib eyelids, creases, and lashes. Set `view: "profile"` for an
+anatomical cutaway and `side: "left"` to mirror it. `hand` currently places
+vendored Twemoji SVG placeholders. Both support origin, direction, and size;
+hands additionally support `pose` and `handedness`. `hand-anchors` returns
+approximate wrist, palm, finger, and thumb attachment coordinates for vector
+annotations.
 
 = Optics and mechanics
 

@@ -94,9 +94,10 @@
     samples: 120,
     sides: 14,
     radius: 0.14,
+    cap: "round",
     pattern: (geo.texture.striped)(40),
   ),
-  [Fig. 3. An open helix, capped automatically at both ends.],
+  [Fig. 3. An open helix with hemispherical end caps.],
   eye: (6.4, 7.4, 4.3),
   height: 5.6,
 )
@@ -110,8 +111,8 @@
     sweeps a circular section to form the occluding mesh.
   ]),
   premetadated.style.note([Variation.], [
-    Change the function, interval, radius, sampling density, or texture without
-    adding a new shape implementation. Closed paths become knots; open paths
-    become pipes, cords, springs, or diagrammatic trajectories.
+    Change the function, interval, radius profile, sampling density, cap, or
+    texture without adding a new shape implementation. Closed paths become
+    knots; open paths become pipes, cords, springs, or diagrammatic trajectories.
   ]),
 )

@@ -89,9 +89,9 @@
 		#align(right)[
 			#text(size: 8pt, smallcaps[Witnesses:])
 			#v(3pt)
-			#text(font: "IM FELL English", size: 13pt, style: "italic")[E. Cartwright]
+			#text(font: "IM FELL Double Pica PRO", size: 13pt, style: "italic")[E. Cartwright]
 			#linebreak()
-			#text(font: "IM FELL English", size: 13pt, style: "italic")[M. Bell]
+			#text(font: "IM FELL Double Pica PRO", size: 13pt, style: "italic")[M. Bell]
 		]
 	],
 )
@@ -101,5 +101,5 @@
 #align(right)[
 	#text(size: 8pt, smallcaps[Inventor:])
 	#v(3pt)
-	#text(font: "IM FELL English", size: 15pt, style: "italic")[John Hargreave]
+	#text(font: "IM FELL Double Pica PRO", size: 15pt, style: "italic")[John Hargreave]
 ]

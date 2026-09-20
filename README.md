@@ -88,6 +88,10 @@ tori, generic swept tubes, rounded boxes, and rounded convex polyhedra. Surface
 styles include outlines, stripes, latitude/longitude grids, random circles,
 lighting-aware hatching, and stippling.
 
+Swept tubes accept either a constant radius or one radius per centerline point;
+`tube-curve` also accepts a radius function sampled with the curve. Open tubes
+support flat, hemispherical, or absent end caps through `cap:`.
+
 ## Ray optics
 
 The dependency-free `optics` module traces finite beams and point sources through

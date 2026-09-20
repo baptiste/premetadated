@@ -97,6 +97,23 @@
 )
 #assert(geometry.paths(knot, eye: (7.0, 9.0, 6.0), width: 11.0, height: 8.0).len() > 0)
 
+#let tapered-tube = geometry.tube(
+  ((-1.5, 0.0, 0.0), (-0.4, 0.2, 0.3), (0.7, -0.1, 0.5), (1.5, 0.0, 0.0)),
+  radius: (0.18, 0.42, 0.3, 0.12),
+  sides: 10,
+  cap: "round",
+)
+#assert(geometry.paths(tapered-tube, eye: (4.0, 6.0, 3.0), width: 5.0, height: 4.0).len() > 0)
+
+#let swelling-tube = geometry.tube-curve(
+  t => (2 * t - 1, 0.2 * calc.sin(t * calc.pi), 0.0),
+  radius: t => 0.12 + 0.25 * calc.sin(t * calc.pi),
+  samples: 24,
+  sides: 10,
+  cap: "round",
+)
+#assert(geometry.paths(swelling-tube, eye: (4.0, 6.0, 3.0), width: 5.0, height: 4.0).len() > 0)
+
 #let new-solids = (
   geometry.ellipsoid((-1.2, 0.0, 0.0), (1.0, 0.6, 0.8)),
   geometry.rounded-box((0.0, -0.7, -0.6), (1.3, 0.7, 0.6), radius: 0.18),
@@ -111,4 +128,6 @@
 #drawing.canvas({
   stroke.nib-stroke(line, pen: (0.4, 0.15, 25deg), fill: rgb("d1495b"))
   optics-illustration.draw(imported-diagram)
+  drawing.eye(origin: (2.8, 1.1), direction: -12deg, size: 0.6)
+  drawing.eye(origin: (1.5, 1.1), view: "profile", side: "left", size: 0.5)
 })

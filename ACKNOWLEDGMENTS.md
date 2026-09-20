@@ -28,7 +28,9 @@ which relationships are dependencies, adaptations, or inspiration.
 - Sergey Slyusarev's [Fiziko](https://github.com/jemmybutton/fiziko), licensed
   under GPL-3.0, inspired the variable-width line work, shaded scientific
   solids, tubes, knots, optics, mechanics, and compact reusable illustration
-  vocabulary.
+  vocabulary. Its article
+  [“Various things in MetaPost”](https://habr.com/en/articles/454376/) directly
+  motivated Premetadated's variable-radius tube profiles.
 - Foad S. Farimani's
   [vintage-latex](https://github.com/Foadsf/vintage-latex), licensed under
   CC BY-SA 4.0, inspired the historical plate styling and several specimen
@@ -47,9 +49,9 @@ accepting a documented subset of its exported scene object schema.
 
 ## Bundled graphics
 
-The temporary eye and hand SVG placeholders are unmodified
-[Twemoji](https://github.com/twitter/twemoji) graphics, copyright 2019 Twitter,
-Inc. and other contributors, licensed under
+The temporary hand SVG placeholders and retained eye reference asset are
+unmodified [Twemoji](https://github.com/twitter/twemoji) graphics, copyright
+2019 Twitter, Inc. and other contributors, licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Exact asset details
 are recorded in [`assets/twemoji/ATTRIBUTION.md`](assets/twemoji/ATTRIBUTION.md).
 

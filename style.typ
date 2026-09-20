@@ -26,7 +26,7 @@
 ) = {
   assert(title != none, message: "plate title is required")
   set page(width: 210mm, height: 297mm, margin: margin, fill: paper)
-  set text(font: "Adobe Garamond Pro", size: 10pt, fill: ink)
+  set text(font: "IM FELL Double Pica PRO", size: 10pt, fill: ink)
   set par(justify: true, leading: 0.62em)
 
   align(center)[
@@ -57,7 +57,7 @@
 ) = {
   assert(title != none, message: "patent title is required")
   set page(width: 210mm, height: 297mm, margin: margin, fill: paper)
-  set text(font: "Adobe Garamond Pro", size: 10pt, fill: ink)
+  set text(font: "IM FELL Double Pica PRO", size: 10pt, fill: ink)
   set par(justify: true, leading: 0.62em)
 
   grid(

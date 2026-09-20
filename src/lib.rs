@@ -26,6 +26,13 @@ pub enum PointDistribution {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+pub enum TubeCap {
+    Flat,
+    Round,
+    None,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum SpherePattern {
     Outline,
     LatLng {
@@ -90,9 +97,10 @@ pub enum LarntShape {
     },
     Tube {
         points: Vec<[f64; 3]>,
-        radius: f64,
+        radii: Vec<f64>,
         sides: usize,
         closed: bool,
+        cap: TubeCap,
         pattern: LinePattern,
     },
     Ellipsoid {
@@ -280,6 +288,7 @@ struct LitTorus {
 #[derive(Clone, Copy)]
 struct TubeFrame {
     center: larnt::Vector,
+    tangent: larnt::Vector,
     normal: larnt::Vector,
     binormal: larnt::Vector,
 }
@@ -287,7 +296,7 @@ struct TubeFrame {
 struct TubeSurface {
     mesh: larnt::Mesh,
     frames: Vec<TubeFrame>,
-    radius: f64,
+    radii: Vec<f64>,
     sides: usize,
     closed: bool,
     pattern: LinePattern,
@@ -343,7 +352,7 @@ impl larnt::Shape for TubeSurface {
             LinePattern::Striped(count) => add_tube_rings(
                 &mut paths,
                 &self.frames,
-                self.radius,
+                &self.radii,
                 self.sides,
                 self.closed,
                 count as usize,
@@ -358,7 +367,7 @@ impl larnt::Shape for TubeSurface {
             } => add_tube_hatches(
                 &mut paths,
                 &self.frames,
-                self.radius,
+                &self.radii,
                 self.sides,
                 self.closed,
                 HatchSettings {
@@ -376,15 +385,18 @@ impl larnt::Shape for TubeSurface {
 
 fn build_tube_surface(
     points: Vec<larnt::Vector>,
-    radius: f64,
+    radii: Vec<f64>,
     sides: usize,
     closed: bool,
+    cap: TubeCap,
     pattern: LinePattern,
 ) -> Result<TubeSurface, EnvelopeError> {
     let minimum_points = if closed { 3 } else { 2 };
     if points.len() < minimum_points
-        || !radius.is_finite()
-        || radius <= 0.0
+        || radii.len() != points.len()
+        || radii
+            .iter()
+            .any(|radius| !radius.is_finite() || *radius <= 0.0)
         || !(6..=128).contains(&sides)
         || points
             .iter()
@@ -394,7 +406,7 @@ fn build_tube_surface(
             .any(|pair| pair[0].distance_squared(pair[1]) < 1e-16)
     {
         return Err(EnvelopeError::InvalidInput(
-            "tube needs distinct finite points, positive radius, and 6 to 128 sides",
+            "tube needs distinct finite points, one positive radius per point, and 6 to 128 sides",
         ));
     }
 
@@ -417,8 +429,8 @@ fn build_tube_surface(
     }
 
     let frames = tube_frames(&points, closed);
-    let mut vertices = Vec::with_capacity(frames.len() * sides + usize::from(!closed) * 2);
-    for frame in &frames {
+    let mut vertices = Vec::with_capacity(frames.len() * sides + sides * 2);
+    for (frame, radius) in frames.iter().zip(&radii) {
         for side in 0..sides {
             let angle = std::f64::consts::TAU * side as f64 / sides as f64;
             vertices.push(
@@ -448,15 +460,40 @@ fn build_tube_surface(
         }
     }
     if !closed {
-        let start_center = vertices.len();
-        vertices.push(frames[0].center);
-        let end_center = vertices.len();
-        vertices.push(frames[frames.len() - 1].center);
-        let end_offset = (frames.len() - 1) * sides;
-        for side in 0..sides {
-            let next_side = (side + 1) % sides;
-            triangles.extend([start_center, next_side, side]);
-            triangles.extend([end_center, end_offset + side, end_offset + next_side]);
+        match cap {
+            TubeCap::Flat => {
+                let start_center = vertices.len();
+                vertices.push(frames[0].center);
+                let end_center = vertices.len();
+                vertices.push(frames[frames.len() - 1].center);
+                let end_offset = (frames.len() - 1) * sides;
+                for side in 0..sides {
+                    let next_side = (side + 1) % sides;
+                    triangles.extend([start_center, next_side, side]);
+                    triangles.extend([end_center, end_offset + side, end_offset + next_side]);
+                }
+            }
+            TubeCap::Round => {
+                add_round_tube_cap(
+                    &mut vertices,
+                    &mut triangles,
+                    frames[0],
+                    radii[0],
+                    sides,
+                    0,
+                    -1.0,
+                );
+                add_round_tube_cap(
+                    &mut vertices,
+                    &mut triangles,
+                    frames[frames.len() - 1],
+                    radii[radii.len() - 1],
+                    sides,
+                    (frames.len() - 1) * sides,
+                    1.0,
+                );
+            }
+            TubeCap::None => {}
         }
     }
 
@@ -465,11 +502,67 @@ fn build_tube_surface(
     Ok(TubeSurface {
         mesh,
         frames,
-        radius,
+        radii,
         sides,
         closed,
         pattern,
     })
+}
+
+fn add_round_tube_cap(
+    vertices: &mut Vec<larnt::Vector>,
+    triangles: &mut Vec<usize>,
+    frame: TubeFrame,
+    radius: f64,
+    sides: usize,
+    equator_offset: usize,
+    direction: f64,
+) {
+    let steps = (sides / 2).max(4);
+    let mut previous_offset = equator_offset;
+    for step in 1..steps {
+        let angle = std::f64::consts::FRAC_PI_2 * step as f64 / steps as f64;
+        let ring_offset = vertices.len();
+        let center = frame
+            .center
+            .add(frame.tangent.mul_scalar(direction * radius * angle.sin()));
+        let ring_radius = radius * angle.cos();
+        for side in 0..sides {
+            let azimuth = std::f64::consts::TAU * side as f64 / sides as f64;
+            vertices.push(
+                center
+                    .add(frame.normal.mul_scalar(ring_radius * azimuth.cos()))
+                    .add(frame.binormal.mul_scalar(ring_radius * azimuth.sin())),
+            );
+        }
+        for side in 0..sides {
+            let next_side = (side + 1) % sides;
+            let a = previous_offset + side;
+            let b = ring_offset + side;
+            let c = ring_offset + next_side;
+            let d = previous_offset + next_side;
+            if direction < 0.0 {
+                triangles.extend([a, c, b, a, d, c]);
+            } else {
+                triangles.extend([a, b, c, a, c, d]);
+            }
+        }
+        previous_offset = ring_offset;
+    }
+    let pole = vertices.len();
+    vertices.push(
+        frame
+            .center
+            .add(frame.tangent.mul_scalar(direction * radius)),
+    );
+    for side in 0..sides {
+        let next_side = (side + 1) % sides;
+        if direction < 0.0 {
+            triangles.extend([pole, previous_offset + next_side, previous_offset + side]);
+        } else {
+            triangles.extend([pole, previous_offset + side, previous_offset + next_side]);
+        }
+    }
 }
 
 fn tube_frames(points: &[larnt::Vector], closed: bool) -> Vec<TubeFrame> {
@@ -505,6 +598,7 @@ fn tube_frames(points: &[larnt::Vector], closed: bool) -> Vec<TubeFrame> {
         };
         frames.push(TubeFrame {
             center,
+            tangent,
             normal,
             binormal: tangent.cross(normal).normalize(),
         });
@@ -542,6 +636,11 @@ fn tube_frame_at(frames: &[TubeFrame], closed: bool, fraction: f64) -> TubeFrame
         .normalize();
     TubeFrame {
         center,
+        tangent: frames[index]
+            .tangent
+            .mul_scalar(1.0 - amount)
+            .add(frames[next].tangent.mul_scalar(amount))
+            .normalize(),
         normal,
         binormal,
     }
@@ -550,7 +649,7 @@ fn tube_frame_at(frames: &[TubeFrame], closed: bool, fraction: f64) -> TubeFrame
 fn add_tube_rings(
     paths: &mut larnt::Paths<larnt::Vector>,
     frames: &[TubeFrame],
-    radius: f64,
+    radii: &[f64],
     sides: usize,
     closed: bool,
     count: usize,
@@ -560,6 +659,7 @@ fn add_tube_rings(
         let key = lighting.map_or(0, |(_, _, seed)| seed) ^ ring_index as u64;
         let fraction = (ring_index as f64 + 0.5) / count as f64;
         let frame = tube_frame_at(frames, closed, fraction);
+        let radius = tube_radius_at(radii, closed, fraction);
         let samples = (sides * 3).max(48);
         let ring = (0..=samples).map(|sample_index| {
             let angle = std::f64::consts::TAU * sample_index as f64 / samples as f64;
@@ -583,7 +683,7 @@ fn add_tube_rings(
 fn add_tube_hatches(
     paths: &mut larnt::Paths<larnt::Vector>,
     frames: &[TubeFrame],
-    radius: f64,
+    radii: &[f64],
     sides: usize,
     closed: bool,
     hatch: HatchSettings,
@@ -593,7 +693,7 @@ fn add_tube_hatches(
     add_tube_rings(
         paths,
         frames,
-        radius,
+        radii,
         sides,
         closed,
         ring_count.max(8),
@@ -610,7 +710,8 @@ fn add_tube_hatches(
                 hatch.crosshatch + (1.0 - hatch.crosshatch) * unit_hash(key.rotate_left(29));
             let mut samples = frames
                 .iter()
-                .map(|frame| {
+                .zip(radii)
+                .map(|(frame, radius)| {
                     let normal = frame
                         .normal
                         .mul_scalar(angle.cos())
@@ -625,6 +726,23 @@ fn add_tube_hatches(
             add_thresholded_curve(paths, samples, light, threshold);
         }
     }
+}
+
+fn tube_radius_at(radii: &[f64], closed: bool, fraction: f64) -> f64 {
+    let span = if closed {
+        radii.len() as f64
+    } else {
+        (radii.len() - 1) as f64
+    };
+    let position = fraction * span;
+    let index = (position.floor() as usize).min(radii.len() - 1);
+    let next = if index + 1 == radii.len() {
+        if closed { 0 } else { index }
+    } else {
+        index + 1
+    };
+    let amount = position - position.floor();
+    radii[index] * (1.0 - amount) + radii[next] * amount
 }
 
 impl larnt::Shape for StippledSphere {
@@ -1432,15 +1550,17 @@ fn shape_to_larnt(shape: LarntShape) -> Result<larnt::Primitive, EnvelopeError> 
         }
         LarntShape::Tube {
             points,
-            radius,
+            radii,
             sides,
             closed,
+            cap,
             pattern,
         } => larnt::Primitive::Dynamic(Box::new(build_tube_surface(
             points.into_iter().map(vector).collect(),
-            radius,
+            radii,
             sides,
             closed,
+            cap,
             pattern,
         )?)),
         LarntShape::Ellipsoid {
@@ -1680,9 +1800,10 @@ mod larnt_tests {
         let scene = LarntScene {
             shapes: vec![LarntShape::Tube {
                 points,
-                radius: 0.18,
+                radii: vec![0.18; samples],
                 sides: 12,
                 closed: true,
+                cap: TubeCap::Flat,
                 pattern: LinePattern::Striped(32),
             }],
             eye: [7.0, 9.0, 6.0],
@@ -1702,6 +1823,76 @@ mod larnt_tests {
 
         assert_eq!(first, second);
         assert!(paths.len() > 20);
+    }
+
+    #[test]
+    fn variable_radius_tube_with_round_caps_projects() {
+        let points = vec![
+            [-1.5, 0.0, 0.0],
+            [-0.4, 0.2, 0.3],
+            [0.7, -0.1, 0.5],
+            [1.5, 0.0, 0.0],
+        ];
+        let radii = vec![0.18, 0.42, 0.3, 0.12];
+        let scene = LarntScene {
+            shapes: vec![LarntShape::Tube {
+                points: points.clone(),
+                radii: radii.clone(),
+                sides: 12,
+                closed: false,
+                cap: TubeCap::Round,
+                pattern: LinePattern::LitHatch {
+                    light: [-1.0, -0.5, 1.0],
+                    count: 180,
+                    length: 0.18,
+                    crosshatch: 0.72,
+                    seed: 23,
+                },
+            }],
+            eye: [4.0, 6.0, 3.0],
+            center: [0.0, 0.0, 0.0],
+            up: [0.0, 0.0, 1.0],
+            width: 5.0,
+            height: 4.0,
+            fovy: 42.0,
+            near: 0.1,
+            far: 100.0,
+            step: 0.02,
+        };
+        let output = try_larnt_paths(&bincode::serialize(&scene).unwrap()).unwrap();
+        let paths: ProjectedPaths = bincode::deserialize(&output).unwrap();
+
+        assert!(paths.len() > 10);
+        assert!(
+            paths
+                .iter()
+                .flatten()
+                .flatten()
+                .all(|value| value.is_finite())
+        );
+        let straight = build_tube_surface(
+            vec![vector([0.0, 0.0, 0.0]), vector([1.0, 0.0, 0.0])],
+            vec![0.2, 0.35],
+            12,
+            false,
+            TubeCap::Round,
+            LinePattern::Outline,
+        )
+        .unwrap();
+        let bounds = larnt::Shape::bounding_box(&straight);
+        assert!((bounds.min.x + 0.2).abs() < 1e-12);
+        assert!((bounds.max.x - 1.35).abs() < 1e-12);
+        assert!(
+            build_tube_surface(
+                points.into_iter().map(vector).collect(),
+                radii[..3].to_vec(),
+                12,
+                false,
+                TubeCap::Round,
+                LinePattern::Outline,
+            )
+            .is_err()
+        );
     }
 
     #[test]

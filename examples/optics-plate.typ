@@ -190,5 +190,5 @@
   #text(size: 8pt, smallcaps[Drawn for the Optical Society])
 
   #v(4pt)
-  #text(font: "IM FELL English", size: 14pt, style: "italic")[A. H. Mercer]
+  #text(font: "IM FELL Double Pica PRO", size: 14pt, style: "italic")[A. H. Mercer]
 ]

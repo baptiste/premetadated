@@ -79,3 +79,22 @@
     )
   }),
 )
+
+#pagebreak()
+
+  // path,
+  // pen: none,
+  // closed: false,
+  // dash: none,
+  // pressure: none,
+  // epsilon: 0.01,
+  // fill: black,
+  // stroke: none,
+
+#example([Fixed elliptical nib], {
+    nib-stroke(
+      wave,
+      pen: (0.38, 0.10, 30deg),
+      fill: rgb("d1495b"),
+    )
+  })

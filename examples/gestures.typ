@@ -7,7 +7,7 @@
 #show: premetadated.style.plate.with(
   number: [Plate X],
   title: [Eyes and Indicative Hands],
-  subtitle: [temporary SVG figures for observation and physical direction],
+  subtitle: [engraved observation and physical direction],
   margin: (x: 21mm, y: 18mm),
 )
 
@@ -30,12 +30,13 @@
 
 #align(center)[
   #drawing.canvas({
-    drawing.eye(origin: (-3.3, 0), direction: -22deg, size: 0.90)
-    drawing.eye(origin: (-1.1, 0), direction: 0deg, size: 1.05)
-    drawing.eye(origin: (1.2, 0), direction: 18deg, size: 0.90)
-    drawing.eye(origin: (3.35, 0), direction: 0deg, size: 0.82)
+    drawing.eye(origin: (-4.4, 0), direction: -18deg, size: 0.84)
+    drawing.eye(origin: (-2.5, 0), direction: 0deg, size: 0.96)
+    drawing.eye(origin: (-0.3, 0), direction: 14deg, size: 0.82)
+    drawing.eye(origin: (1.9, 0), view: "profile", size: 0.86)
+    drawing.eye(origin: (4.2, 0), view: "profile", side: "left", direction: -8deg, size: 0.78)
   })
-  #drawing.figure-caption([Fig. 1. Temporary eye SVGs under rotation and scale.])
+  #drawing.figure-caption([Fig. 1. Frontal eyes and anatomical profile cutaways.])
 ]
 
 #v(10mm)
@@ -78,12 +79,13 @@
 #v(10mm)
 
 #premetadated.style.notes(
-  premetadated.style.note([Temporary assets.], [
-    Eye and hand figures are vendored Twemoji SVG placeholders. They can be
-    replaced later without changing diagram call sites.
+  premetadated.style.note([Construction.], [
+    The eyes combine filled Cetz pupils with asymmetric cubic eyelids, creases,
+    and lashes swept by the package's elliptical nib. Profile views expose the
+    cornea, iris, lens, vitreous chamber, and optic nerve.
   ]),
   premetadated.style.note([Handedness.], [
     Set `handedness: "left"` to mirror either pose; `direction` then revolves the
-    complete SVG and its vector anchors.
+    complete hand SVG and its vector anchors.
   ]),
 )

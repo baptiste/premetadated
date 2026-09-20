@@ -107,15 +107,26 @@
   radius: 0.1,
   sides: 12,
   closed: false,
+  cap: "flat",
   pattern: (texture.outline)(),
-) = (
-  kind: "tube",
-  points: points,
-  radius: radius,
-  sides: sides,
-  closed: closed,
-  pattern: pattern,
-)
+) = {
+  let radii = if type(radius) == array {
+    assert.eq(radius.len(), points.len(), message: "tube needs one radius per point")
+    radius
+  } else {
+    (radius,) * points.len()
+  }
+  assert(cap in ("flat", "round", "none"), message: "tube cap must be flat, round, or none")
+  (
+    kind: "tube",
+    points: points,
+    radii: radii,
+    sides: sides,
+    closed: closed,
+    cap: cap,
+    pattern: pattern,
+  )
+}
 
 #let tube-curve(
   curve,
@@ -125,6 +136,7 @@
   start: 0.0,
   end: 1.0,
   closed: false,
+  cap: "flat",
   pattern: (texture.outline)(),
 ) = {
   assert(samples >= if closed { 3 } else { 1 }, message: "tube curve has too few samples")
@@ -133,7 +145,15 @@
     let fraction = index / samples
     curve(start + (end - start) * fraction)
   })
-  tube(points, radius: radius, sides: sides, closed: closed, pattern: pattern)
+  let radii = if type(radius) == function {
+    range(intervals).map(index => {
+      let fraction = index / samples
+      radius(start + (end - start) * fraction)
+    })
+  } else {
+    radius
+  }
+  tube(points, radius: radii, sides: sides, closed: closed, cap: cap, pattern: pattern)
 }
 
 #let ellipsoid(center, radii, pattern: (texture.outline)()) = (
@@ -223,7 +243,12 @@
     for point in shape.points {
       output += _vec3(point)
     }
-    output += _f64(shape.radius) + _u64(shape.sides) + _u8(if shape.closed { 1 } else { 0 })
+    output += _u64(shape.radii.len())
+    for radius in shape.radii {
+      output += _f64(radius)
+    }
+    output += _u64(shape.sides) + _u8(if shape.closed { 1 } else { 0 })
+    output += _u32(("flat", "round", "none").position(value => value == shape.cap))
     output + _line-pattern(shape.pattern)
   } else if shape.kind == "ellipsoid" {
     _u32(6) + _vec3(shape.center) + _vec3(shape.radii) + _sphere-pattern(shape.pattern)
